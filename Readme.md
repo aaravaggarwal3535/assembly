@@ -124,3 +124,50 @@ This chapter describes the RISC-V supervisor-level architecture, which contains 
 
 RISC-V supports Page-Based 32-bit, 39-bit, and 48-bit virtual memory addressing. The supervisor (S-Mode) memory-management fence instruction (SFENCE.VMA) is used to synchronize updates to in-memory memory-management data structures with current execution. Executing this instruction guarantees that any previous stores already visible to the current RISC-V hart (hardware thread) are ordered before all subsequent implicit references from that hart to the memory-management data structures.
 
+## Hands on RISC-V assembly language
+The RISC-V assembly language has a number of features that go hand in hand with the features of the RISC-V ISA. Among other features, we have the following:
+- The language was designed with simplicity in mind.
+- In general, binary operations like addition, AND, XOR, multiplication, and so on, specify 3 operands: 2 source registers with read access, and 1 result register with write access.
+- Support of pseudoinstructions to ease the task of writing assembly code.
+- Direct translation between assembly language and machine language.
+
+An assembler is used to convert assembly code into machine code 
+RISC-V language elements:
+- <b>Instructions</b>: A set of basic operations, such as arithmetic, load/store, and control flow, that are executed by the processor. In general, instructions consist of a mnemonic (a short but descriptive instruction name) and a series of operands (the registers or data to operate upon).
+- <b>Registers</b>: A set of basic operations, such as arithmetic, load/store, and control flow, that are executed by the processor. In general, instructions consist of a mnemonic (a short but descriptive instruction name) and a series of operands (the registers or data to operate upon).
+- <b>Labels</b>: Symbolic names for memory locations that can be used as targets for branch and jump instructions.
+- <b>Directives</b>: Special commands used to control the behavior of the assembler, such as setting memory regions or defining constants.
+- <b>Macros</b>: User-defined sequences of instructions that can be invoked with a single macro call.
+- <b>Pseudoinstructions</b>: Synthetic instructions that are translated by the assembler into one or more real instructions, allowing for a higher-level, more concise representation of the code.
+
+```asm
+  .text                     # Directive: enter text section(memory region)
+  .align 2                  # Directive: align code to 2^2 bytes(in RISC-V 32 the instructions are 4 byte so we set the instruction adress to be 2^2=4 byte)
+  .globl main               # Directive: declare global symbol main(set the entry point of the program)
+
+main:                       # label for start of main
+  addi sp,sp,-16            # allocate stack frame(sp point to x2 then subracted by 16, stack should be 16 byte is the standard)
+  sw ra,12(sp)              # save return address(ra is x1 adress to return after main finishes, it is imp to save as the call of other function will overwrite ra, 12(sp) means adress be sp+12), (store word)
+  lui a0,%hi(string1)       # compute address of
+  addi a0,a0,%lo(string1)   # string1
+  # lui will load the upper 20byte into a0, addi will store the lower 12 bits to a0
+  lui a1,%hi(string2)       # compute address of
+  addi a1,a1,%lo(string2)   # string2
+  # lui load uppar 20 byte of the string 2 to a1 then addi store lower 12 byte to a1
+  # done in 2 parts as we cant load 32 byte simultaneously instead we do it in two turn of 16/20 byte each
+  call printf               # pseudoinstruction to call function printf
+  lw ra,12(sp)              # restore return address restore the orignal adress to go back to the main function back into ra after the call of the function, (load word)
+  addi sp,sp,16             # deallocate stack frame
+  li a0,0                   # load return value 0(same as addi a0, x0, 0)
+  ret                       # return (jump and link register)
+
+  .section .rodata          # Directive: enter read-only data section
+  .balign 4                 # Directive: align data section to 4 bytes(unlike align wich follow power of 2, balign take direct byte order)
+
+string1:                    # label for first string
+  .string "Hello, %s!\n"    # Directive: null-terminated string
+
+string2:                    # label for second string
+  .string "world"           # Directive: null-terminated string
+```
+
