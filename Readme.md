@@ -171,3 +171,67 @@ string2:                    # label for second string
   .string "world"           # Directive: null-terminated string
 ```
 
+### Assembler Directives
+RISC-V assembler directives are non-CPU instructions that provide information to the assembler (the program that produces machine code from a text file), but are not executed as machine instructions. They control the assembly process, specify data locations and provide information to linkers.
+
+- <b>.align</b>: Aligns the location counter to a specified power of 2 boundary.
+- <b>.section</b>: Specifies the section of the output file where the following data should be placed.
+- <b>.byte</b>: Defines an array of 8-bit values.
+- <b>.half</b>: Defines an array of 16-bit values.
+- <b>.word</b>: Defines an array of 32-bit values.
+- <b>.data</b>: Specifies the start of the data section where initialized data is stored.
+- <b>.text</b>: Specifies the start of the code section where instructions are stored.
+- <b>.globl</b>: Declares a symbol as global and accessible from other files.
+- <b>.equ</b>: Assigns a value to a symbol, useful for constants.
+- <b>.string</b>: Defines a string of ASCII characters with a null terminator.
+
+### RISC-V Assembly Instruction Set Reference List
+![RISC-V Assembly Instruction Set Reference List](./assets/risc-v_assembly_instruction_set.png)
+
+### RISC-V Pseudoinstructions Reference List
+![RISC-V Pseudoinstructions Reference List](./assets/risc-v_pseudoinstructions_reference_list.png)
+
+### CSR Access
+RISC-V defines a separate address space of 4096 Control and Status Registers (CSR) associated with each hart (short for Hardware Thread). As thoroughly discussed previously, these registers work as a means of configuring (controlling) and learning the status of hardware elements in the system.
+
+The specific instructions used for CSR access are:
+- CSRRW (Control and Status Register Read/Write).
+- CSRRW (Control and Status Register Read/Write).
+- CSRRC (Control and Status Register Read and Clear).
+
+### Oder of operand
+destination, source1, source2
+
+### Labels
+In assembly language, labels are used to mark specific locations in the code and give them a meaningful name. These labels can then be used in place of a memory address when referring to that location in the code.
+
+can lead to instructions like:
+```asm
+loop:
+  add x1, x2, x3
+  addi x1, x1, 1
+  j loop
+```
+
+or can be used to lead to data elements like:
+```asm
+.data
+count:  .word    0
+array:  .half    6, 5, 5, 3, 2, 1
+msg:    .string  "Hey there"
+age:    .byte    21
+```
+
+### Imidiate size
+Generally, RISC-V RV32I instructions use immediate values that are 12 bits in size, and are sign-extended to the width of the destination register. For example, the instruction "addi x1, x2, 100" will sign-extend the 12-bit immediate value 100 to 32 bits and add it to the contents of register x2, then store the result in x1.
+
+However, some instructions use immediates that are larger than 12 bits. For example, the lui (load upper immediate) instruction uses a 20-bit immediate value to load a value into the upper 20 bits of a register and write 0 to the lower 12 bits.
+
+As you can see, combining the lui and addi instructions in a sequence allows for loading an arbitrary 32-bit immediate value into a register. In fact, there is no “Load Immediate” machine instruction in the RISC-V ISA, which loads an arbitrary 32-bit value into a register. Thus, one way to load 0x12345678 into register t0 would be the following sequence:
+```asm
+  lui  t0, 0x12345
+  addi t0, t0, 0x678
+```
+
+### Terminal INterface Assembly Code
+in  file ./name_greeting.asm
